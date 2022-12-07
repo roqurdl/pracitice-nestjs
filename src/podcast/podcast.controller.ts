@@ -7,53 +7,79 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { EpisodeDto } from './dtos/create-episode.dto';
-import { PodcastDto } from './dtos/create-podcast.dto';
-import { PodcastService } from './podcast.service';
+import { CreateEpisodeDto } from './dtos/create-episode.dto';
+import { CreatePodcastDto } from './dtos/create-podcast.dto';
+import { UpdateEpisodeDto } from './dtos/update-episode.dto';
+import { UpdatePodcastDto } from './dtos/update-podcast.dto';
+import { PodcastsService } from './podcasts.service';
 
-@Controller('podcasts')
-export class PodcastController {
-  constructor(private readonly podService: PodcastService) {}
+@Controller('/podcasts')
+export class PodcastsController {
+  constructor(private readonly podcastsService: PodcastsService) {}
 
   @Get()
-  getAllPod() {
-    return this.podService.getAllPod();
+  getAllPodcasts() {
+    return this.podcastsService.getAllPodcasts();
   }
+
   @Post()
-  createPod(@Body() podDate: PodcastDto) {
-    return this.podService.createPod(podDate);
+  createPodcast(@Body() createPodcastDto: CreatePodcastDto) {
+    return this.podcastsService.createPodcast(createPodcastDto);
   }
 
-  @Get(`/:id`)
-  getPod(@Param(`id`) podId: number) {
-    return this.podService.getPod(podId);
-  }
-  @Patch(`/:id`)
-  updatePod(@Param(`id`) podId: number, @Body() updatePodData: PodcastDto) {
-    return this.podService.updatePod(podId, updatePodData);
-  }
-  @Delete(`/:id`)
-  deletePod(@Param(`id`) podId: number) {
-    return this.podService.deletePod(podId);
+  @Get('/:id')
+  getPodcast(@Param('id') id: string) {
+    return this.podcastsService.getPodcast(id);
   }
 
-  @Get(`/:id/episodes`)
-  getEp(@Param(`id`) podId: number) {
-    return this.podService.getEp(podId);
-  }
-  @Post(`/:id/episodes`)
-  createEp(@Param(`id`) podId: number, @Body() epiData: EpisodeDto) {
-    return this.podService.createEp(podId, epiData);
-  }
-  @Patch(`/:id/episodes/:episodeId`)
-  updateEp(
-    @Param() ids: { id: number; episodeId: number },
-    @Body() epiData: EpisodeDto,
+  @Patch('/:id')
+  updatePodcast(
+    @Param('id') id: string,
+    @Body() updatePodcastDto: UpdatePodcastDto,
   ) {
-    return this.podService.updateEp(ids, epiData);
+    return this.podcastsService.updatePodcast(id, updatePodcastDto);
   }
-  @Delete(`/:id/episodes/:episodeId`)
-  deleteEp(@Param() ids: { id: number; episodeId: number }) {
-    return this.podService.deleteEp(ids);
+
+  @Delete('/:id')
+  deletePodcast(@Param('id') id: string) {
+    return this.podcastsService.deletePodcast(id);
+  }
+}
+
+@Controller('/podcasts/:id')
+export class EpisodeController {
+  constructor(private readonly podcastService: PodcastsService) {}
+  @Get('/episodes')
+  getEpisodes(@Param('id') podcastId: string) {
+    return this.podcastService.getEpisodes(podcastId);
+  }
+
+  @Post('/episodes')
+  createEpisode(
+    @Param('id') podcastId: string,
+    @Body() createEpisodeDto: CreateEpisodeDto,
+  ) {
+    return this.podcastService.createEpisode(podcastId, createEpisodeDto);
+  }
+
+  @Patch('/episodes/:episodeId')
+  updateEpisode(
+    @Param('id') podcastId: string,
+    @Param('episodeId') episodeId: string,
+    @Body() updateEpisodeDto: UpdateEpisodeDto,
+  ) {
+    return this.podcastService.updateEpisode(
+      podcastId,
+      episodeId,
+      updateEpisodeDto,
+    );
+  }
+
+  @Delete('/episodes/:episodeId')
+  deleteEpisode(
+    @Param('id') podcastId: string,
+    @Param('episodeId') episodeId: string,
+  ) {
+    return this.podcastService.deleteEpisode(podcastId, episodeId);
   }
 }

@@ -1,6 +1,6 @@
 export class Episode {
-  epId: number;
-  podId: number;
-  description: string;
-  runtime: string;
+  id: number;
+  title: string;
+  category: string;
+  rating: number;
 }
