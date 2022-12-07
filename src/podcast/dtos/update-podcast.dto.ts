@@ -1,8 +1,5 @@
-import { Episode } from '../entities/episode.entity';
+import { InputType, PartialType } from '@nestjs/graphql';
+import { CreatePodcastDto } from './create-podcast.dto';
 
-export class UpdatePodcastDto {
-  readonly title?: string;
-  readonly category?: string;
-  readonly rating?: number;
-  readonly episodes?: Episode[];
-}
+@InputType()
+export class UpdatePodcastDto extends PartialType(CreatePodcastDto) {}

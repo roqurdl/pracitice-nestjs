@@ -1,4 +1,9 @@
+import { InputType, Field } from '@nestjs/graphql';
+
+@InputType()
 export class CreateEpisodeDto {
-  readonly title: string;
-  readonly category: string;
+  @Field((type) => String)
+  title: string;
+  @Field((type) => String)
+  category: string;
 }
