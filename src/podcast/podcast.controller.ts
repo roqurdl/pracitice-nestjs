@@ -11,7 +11,7 @@ import { CreateEpisodeDto } from './dtos/create-episode.dto';
 import { CreatePodcastDto } from './dtos/create-podcast.dto';
 import { UpdateEpisodeDto } from './dtos/update-episode.dto';
 import { UpdatePodcastDto } from './dtos/update-podcast.dto';
-import { PodcastsService } from './podcasts.service';
+import { PodcastsService } from './podcast.service';
 
 @Controller('/podcasts')
 export class PodcastsController {

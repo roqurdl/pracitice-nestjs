@@ -1,6 +1,6 @@
 import { Episode } from '../entities/episode.entity';
 
-export class PodcastDto {
+export class CreatePodcastDto {
   readonly title: string;
   readonly category: string;
   readonly rating: number;

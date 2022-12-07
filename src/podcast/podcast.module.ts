@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { EpisodeController, PodcastsController } from './podcasts.controller';
-import { PodcastsService } from './podcasts.service';
+import { EpisodeController, PodcastsController } from './podcast.controller';
+import { PodcastsService } from './podcast.service';
 
 @Module({
   controllers: [PodcastsController, EpisodeController],
