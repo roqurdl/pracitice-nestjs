@@ -1,6 +1,5 @@
 # practice nestjs
-
---main
+-main
 REST API in nestjs
---gragpql
+-gragpql
 Change REST API to GarphQL
