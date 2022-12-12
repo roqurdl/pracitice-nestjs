@@ -1,6 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber } from 'class-validator';
-import { EpisodesSearchInput } from './podcast.dto';
+import { IsString, IsOptional } from 'class-validator';
+import { EpisodesSearchInput } from './input.dto';
 
 @InputType()
 export class UpdateEpisodeDto extends EpisodesSearchInput {

@@ -11,18 +11,6 @@ export class PodcastSearchInput {
   id: number;
 }
 
-@ObjectType()
-export class PodcastOutput extends CoreOutput {
-  @Field((type) => Podcast, { nullable: true })
-  podcast?: Podcast;
-}
-
-@ObjectType()
-export class EpisodesOutput extends CoreOutput {
-  @Field((type) => [Podcast], { nullable: true })
-  episodes?: Episode[];
-}
-
 @InputType()
 export class EpisodesSearchInput {
   @Field((type) => Number)

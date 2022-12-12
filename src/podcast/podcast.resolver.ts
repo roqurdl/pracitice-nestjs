@@ -2,13 +2,8 @@ import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { PodcastService } from './podcast.service';
 import { Podcast } from './entities/podcast.entity';
 import { CreatePodcastDto } from './dtos/create-podcast.dto';
-import { CoreOutput } from './dtos/output.dto';
-import {
-  PodcastSearchInput,
-  PodcastOutput,
-  EpisodesOutput,
-  EpisodesSearchInput,
-} from './dtos/podcast.dto';
+import { CoreOutput, PodcastOutput, EpisodesOutput } from './dtos/output.dto';
+import { PodcastSearchInput, EpisodesSearchInput } from './dtos/input.dto';
 import { UpdatePodcastDto } from './dtos/update-podcast.dto';
 import { Episode } from './entities/episode.entity';
 import { CreateEpisodeDto } from './dtos/create-episode.dto';

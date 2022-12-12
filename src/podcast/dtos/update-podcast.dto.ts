@@ -1,4 +1,4 @@
-import { PodcastSearchInput } from './podcast.dto';
+import { PodcastSearchInput } from './input.dto';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { Episode } from '../entities/episode.entity';

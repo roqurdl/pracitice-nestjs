@@ -5,34 +5,34 @@ import { UpdateEpisodeDto } from './dtos/update-episode.dto';
 import { UpdatePodcastDto } from './dtos/update-podcast.dto';
 import { Episode } from './entities/episode.entity';
 import { Podcast } from './entities/podcast.entity';
-import { CoreOutput } from './dtos/output.dto';
-import {
-  PodcastOutput,
-  EpisodesOutput,
-  EpisodesSearchInput,
-} from './dtos/podcast.dto';
+import { CoreOutput, PodcastOutput, EpisodesOutput } from './dtos/output.dto';
+import { EpisodesSearchInput } from './dtos/input.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class PodcastService {
-  private podcasts: Podcast[] = [];
-
-  getAllPodcasts(): Podcast[] {
-    return this.podcasts;
+  constructor(
+    @InjectRepository(Podcast) private readonly podcasts: Repository<Podcast>,
+  ) {}
+  getAllPodcasts(): Promise<Podcast[]> {
+    return this.podcasts.find();
   }
 
   createPodcast({ title, category }: CreatePodcastDto): CoreOutput {
-    this.podcasts.push({
-      id: this.podcasts.length + 1,
-      title,
-      category,
-      rating: 0,
-      episodes: [],
-    });
+    this.podcasts.save(
+      this.podcasts.create({
+        title,
+        category,
+        rating: 0,
+        episodes: [],
+      }),
+    );
     return { ok: true, error: null };
   }
 
-  getPodcast(id: number): PodcastOutput {
-    const podcast = this.podcasts.find((podcast) => podcast.id === id);
+  async getPodcast(id: number): Promise<PodcastOutput> {
+    const podcast = this.podcasts.findOne({ where: { Podcast: { id } } });
     if (!podcast) {
       return {
         ok: false,
@@ -50,7 +50,7 @@ export class PodcastService {
     if (!ok) {
       return { ok, error };
     }
-    this.podcasts = this.podcasts.filter((p) => p.id !== id);
+    this.podcasts.delete(id);
     return { ok };
   }
 
@@ -59,8 +59,7 @@ export class PodcastService {
     if (!ok) {
       return { ok, error };
     }
-    this.podcasts = this.podcasts.filter((p) => p.id !== id);
-    this.podcasts.push({ ...podcast, ...rest });
+    this.podcasts.update(id, { ...podcast, ...rest });
     return { ok };
   }
 
