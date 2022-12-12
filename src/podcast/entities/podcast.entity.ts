@@ -1,31 +1,46 @@
 import { Episode } from './episode.entity';
-import { ObjectType, Field } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  InputType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { IsString, IsNumber } from 'class-validator';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { CoreEntity } from '../../common/entities/core.entity';
 
-@Entity()
+enum PodcastCategory {
+  COMEDY = 'COMEDY',
+  ENTERTAINMENT = 'ENTERTAINMENT',
+  EDUCATION = 'EDUCATION',
+  NEWS = 'NEWS',
+  BUSINESS = 'BUSINESS',
+  FITNESS = 'FITNESS',
+}
+
+registerEnumType(PodcastCategory, { name: 'PodcastCategory' });
+@InputType('PodcastInput', { isAbstract: true })
 @ObjectType()
-export class Podcast {
-  @PrimaryGeneratedColumn()
-  @Field((_) => Number)
-  @IsNumber()
-  id: number;
-
+@Entity()
+export class Podcast extends CoreEntity {
   @Column()
   @Field((_) => String)
   @IsString()
   title: string;
 
-  @Field((_) => String)
+  @Column()
+  @Field((_) => PodcastCategory)
   @IsString()
-  category: string;
+  category: PodcastCategory;
 
   @Column()
   @Field((_) => Number)
   @IsNumber()
   rating: number;
 
-  @Column(`simple-array`)
-  @Field((_) => [Episode])
+  @Field((_) => [Episode], { nullable: true })
+  @OneToMany(() => Episode, (episode) => episode.podcast, {
+    cascade: true,
+  })
   episodes: Episode[];
 }
