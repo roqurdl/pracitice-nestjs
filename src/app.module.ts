@@ -1,21 +1,22 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
-import { PodcastsModule } from './podcast/podcasts.module';
 import { GraphQLModule } from '@nestjs/graphql';
-import { ApolloDriver } from '@nestjs/apollo';
+import { PodcastsModule } from './podcast/podcasts.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Podcast } from './podcast/entities/podcast.entity';
+import { Episode } from './podcast/entities/episode.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: 'podcastDB',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      database: 'db.sqlite3',
       synchronize: true,
+      logging: true,
+      entities: [Podcast, Episode],
     }),
-    GraphQLModule.forRoot({ driver: ApolloDriver, autoSchemaFile: true }),
+    GraphQLModule.forRoot({ autoSchemaFile: true }),
     PodcastsModule,
   ],
   controllers: [AppController],
