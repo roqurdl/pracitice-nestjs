@@ -9,6 +9,7 @@ import { Episode } from './podcast/entities/episode.entity';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UserModule } from './user/user.module';
 import { CommonModule } from './common/common.module';
+import { JwtModule } from './jwt/jwt.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CommonModule } from './common/common.module';
     PodcastsModule,
     UserModule,
     CommonModule,
+    JwtModule,
   ],
   controllers: [AppController],
   providers: [AppService],
