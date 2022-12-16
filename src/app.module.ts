@@ -17,6 +17,7 @@ import { CommonModule } from './common/common.module';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      context: ({ req }) => ({ user: req['user'] }),
       autoSchemaFile: true,
     }),
     JwtModule.forRoot({ privateKey: 'pleasework' }),
@@ -36,6 +38,7 @@ import { ConfigModule } from '@nestjs/config';
     UserModule,
     CommonModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
