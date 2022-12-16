@@ -4,11 +4,13 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserInput, CreateUserOutput } from './dtos/user-create.dto';
 import { LoginUserInput, LoginUserOutput } from './dtos/user-login.dto';
+import { JwtService } from 'src/jwt/jwt.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
   async createUser({
     email,
@@ -41,8 +43,16 @@ export class UserService {
       if (!hashCheck) {
         return { ok: false, error: `You enter the Wrong Password` };
       }
+      const token = this.jwtService.sign({ id: user.id });
+      return {
+        ok: true,
+        token,
+      };
     } catch (error) {
       return { ok: false, error };
     }
+  }
+  async findById(id: number): Promise<User> {
+    return this.users.findOneBy({ id });
   }
 }
