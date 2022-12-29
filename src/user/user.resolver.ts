@@ -15,37 +15,14 @@ export class UserResolver {
 
   @Mutation((returns) => CreateUserOutput)
   async createUser(@Args(`input`) createUserInput: CreateUserInput) {
-    try {
-      const { ok, error } = await this.userService.createUser(createUserInput);
-      return {
-        ok,
-        error,
-      };
-    } catch (error) {
-      return {
-        ok: false,
-        error,
-      };
-    }
+    return await this.userService.createUser(createUserInput);
   }
   //login
   @Mutation((returns) => LoginUserOutput)
   async login(
     @Args(`input`) loginInput: LoginUserInput,
   ): Promise<LoginUserOutput> {
-    try {
-      const { ok, error, token } = await this.userService.login(loginInput);
-      return {
-        ok,
-        error,
-        token,
-      };
-    } catch (error) {
-      return {
-        error,
-        ok: false,
-      };
-    }
+    return await this.userService.login(loginInput);
   }
   //Auth
   @Query((returns) => User)
@@ -56,21 +33,7 @@ export class UserResolver {
   //seeProfile
   @Mutation((returns) => UserProfileOutput)
   async userProfile(@Args() userProfileInput: UserProfileInput) {
-    try {
-      const user = await this.userService.findById(userProfileInput.userId);
-      if (!user) {
-        throw Error();
-      }
-      return {
-        ok: true,
-        user,
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        error: `There is no User Id: ${userProfileInput.userId}`,
-      };
-    }
+    return await this.userService.findById(userProfileInput.userId);
   }
   //editProfile
   @Mutation((returns) => EditProfileOutput)
@@ -78,16 +41,6 @@ export class UserResolver {
     @AuthUser() authUser: User,
     @Args(`input`) editProfileInput: EditProfileInput,
   ) {
-    try {
-      await this.userService.editProfile(authUser.id, editProfileInput);
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      return {
-        ok: false,
-        error,
-      };
-    }
+    return this.userService.editProfile(authUser.id, editProfileInput);
   }
 }
