@@ -62,7 +62,7 @@ export class UserService {
         ok: true,
         user,
       };
-    } catch (error) {
+    } catch (e) {
       return {
         ok: false,
         error: `There is no User Id: ${id}`,

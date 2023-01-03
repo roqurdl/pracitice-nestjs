@@ -9,6 +9,7 @@ const mockServices = {
   findOneBy: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
+  findOneByOrFail: jest.fn(),
 };
 const mockJwtService = {
   sign: jest.fn(() => `return-test-token`),
@@ -133,20 +134,85 @@ describe(`UserService`, () => {
   });
 
   describe(`findById`, () => {
-    const mockedUser = {
+    const TEST_USER = {
       id: 1,
     };
-    it(`should not find user by Id`, async () => {
-      userRepository.findOneBy.mockResolvedValue(null);
-      const result = await service.findById(mockedUser.id);
-      expect(result).toEqual(null);
+    it(`should not find user by wrong Id`, async () => {
+      userRepository.findOneByOrFail.mockResolvedValue(null);
+      const result = await service.findById(TEST_USER.id);
+      expect(result).toEqual({ ok: true, user: null });
     });
     it(`should find user by Id`, async () => {
-      userRepository.findOneBy.mockResolvedValue(mockedUser);
-      const result = await service.findById(mockedUser.id);
-      expect(result).toEqual(mockedUser);
+      userRepository.findOneByOrFail.mockResolvedValue(TEST_USER);
+      const result = await service.findById(TEST_USER.id);
+      expect(result).toEqual({ ok: true, user: TEST_USER });
+    });
+    it(`shoul fail find user because of findOneByOrFail`, async () => {
+      userRepository.findOneByOrFail.mockRejectedValue(new Error());
+      const result = await service.findById(TEST_USER.id);
+      expect(result).toEqual({
+        ok: false,
+        error: `There is no User Id: ${TEST_USER.id}`,
+      });
     });
   });
 
-  describe(`editProfile`, () => {});
+  describe(`editProfile`, () => {
+    it(`should change email`, async () => {
+      const editEmailArgs = {
+        userId: 1,
+        Input: { email: `test@after.com` },
+      };
+      const beforeUser = {
+        email: `test@before.com`,
+      };
+      const afterUser = {
+        email: `test@after.com`,
+      };
+      userRepository.findOneBy.mockResolvedValue(beforeUser);
+
+      const result = await service.editProfile(
+        editEmailArgs.userId,
+        editEmailArgs.Input,
+      );
+
+      expect(userRepository.findOneBy).toHaveBeenCalled();
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({
+        id: editEmailArgs.userId,
+      });
+
+      expect(userRepository.save).toHaveBeenCalled();
+      expect(userRepository.save).toHaveBeenCalledWith(afterUser);
+
+      expect(result).toEqual({
+        ok: true,
+      });
+    });
+    it(`should change password`, async () => {
+      const editEmailArgs = {
+        userId: 1,
+        Input: { password: `New Password` },
+      };
+      userRepository.findOneBy.mockResolvedValue({ password: `old` });
+      const result = await service.editProfile(
+        editEmailArgs.userId,
+        editEmailArgs.Input,
+      );
+      expect(userRepository.save).toHaveBeenCalled();
+      expect(userRepository.save).toHaveBeenCalledWith(editEmailArgs.Input);
+
+      expect(result).toEqual({
+        ok: true,
+      });
+    });
+
+    it(`should fail on exception`, async () => {
+      userRepository.findOneBy.mockResolvedValue(undefined);
+      const result = await service.editProfile(1, { email: `test` });
+      expect(result).toEqual({
+        ok: false,
+        error: 'Could not update profile',
+      });
+    });
+  });
 });
