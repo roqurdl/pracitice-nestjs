@@ -37,16 +37,17 @@ export class PodcastsService {
   };
 
   async getAllPodcasts(): Promise<GetAllPodcastsOutput> {
-    try {
-      const podcasts = await this.podcastRepository.find();
+    const podcasts = await this.podcastRepository.find();
+    if (podcasts) {
       return {
         ok: true,
         podcasts,
       };
-    } catch (e) {
-      console.log(e);
-      return this.InternalServerErrorOutput;
     }
+    return {
+      ok: false,
+      error: `Could not find any podcast`,
+    };
   }
 
   async createPodcast({
@@ -56,12 +57,14 @@ export class PodcastsService {
     try {
       const newPodcast = this.podcastRepository.create({ title, category });
       const { id } = await this.podcastRepository.save(newPodcast);
-      return {
-        ok: true,
-        id,
-      };
+      if (newPodcast && id) {
+        return {
+          ok: true,
+          id,
+        };
+      }
+      throw Error();
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -82,21 +85,24 @@ export class PodcastsService {
         podcast,
       };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
 
   async deletePodcast(id: number): Promise<CoreOutput> {
     try {
-      const { ok, error } = await this.getPodcast(id);
-      if (!ok) {
-        return { ok, error };
+      const podcast = await this.podcastRepository.findOneBy({
+        id,
+      });
+      if (!podcast) {
+        return {
+          ok: false,
+          error: `Podcast with id ${id} not found`,
+        };
       }
       await this.podcastRepository.delete({ id });
-      return { ok };
+      return { ok: true };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -122,7 +128,6 @@ export class PodcastsService {
       await this.podcastRepository.save(updatedPodcast);
       return { ok };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -138,7 +143,6 @@ export class PodcastsService {
         episodes: podcast.episodes,
       };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -164,7 +168,6 @@ export class PodcastsService {
         episode,
       };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -187,7 +190,6 @@ export class PodcastsService {
         id,
       };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -207,7 +209,6 @@ export class PodcastsService {
       await this.episodeRepository.delete({ id: episode.id });
       return { ok: true };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
@@ -229,7 +230,6 @@ export class PodcastsService {
       await this.episodeRepository.save(updatedEpisode);
       return { ok: true };
     } catch (e) {
-      console.log(e);
       return this.InternalServerErrorOutput;
     }
   }
