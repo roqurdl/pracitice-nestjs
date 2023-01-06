@@ -1,5 +1,6 @@
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import exp from 'constants';
 import { Repository } from 'typeorm';
 import { Episode } from './entities/episode.entity';
 import { Podcast } from './entities/podcast.entity';
@@ -9,16 +10,63 @@ type mockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
 const mockRepository = {
   find: jest.fn(),
+  findOne: jest.fn(),
   create: jest.fn(),
   save: jest.fn(),
   findOneBy: jest.fn(),
   delete: jest.fn(),
 };
 
+const TEST_POD: Podcast = {
+  id: 1,
+  title: `test-title1`,
+  category: `test-category1`,
+  rating: 0,
+  episodes: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+const TEST_POD_2: Podcast = {
+  id: 2,
+  title: `test-title1`,
+  category: `test-category1`,
+  rating: 10,
+  episodes: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+const TEST_EPI: Episode = {
+  id: 1,
+  title: 'TEST1',
+  category: 'TEST1',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  podcast: TEST_POD,
+};
+const TEST_EPI2: Episode = {
+  id: 2,
+  title: 'TEST2',
+  category: 'TEST2',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  podcast: TEST_POD,
+};
+
+const InternalServerErrorOutput = {
+  ok: false,
+  error: 'Internal server error occurred.',
+};
+
 describe(`PodcastsService`, () => {
   let service: PodcastsService;
   let podcastRepository: mockRepository<Podcast>;
   let episodeRepository: mockRepository<Episode>;
+
+  // make test value
+  TEST_POD.episodes.push(TEST_EPI);
+  TEST_POD_2.episodes.push(TEST_EPI2);
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -36,27 +84,26 @@ describe(`PodcastsService`, () => {
   });
   describe(`getAllPodcasts`, () => {
     it(`should return podcasts array`, async () => {
-      podcastRepository.find.mockResolvedValue([`testPod1`, `testPod2`]);
+      podcastRepository.find.mockResolvedValue([TEST_POD, TEST_POD_2]);
       const result = await service.getAllPodcasts();
-      expect(result).toEqual({ ok: true, podcasts: expect.any(Array) });
+      expect(podcastRepository.find).toHaveBeenCalled();
+      expect(result).toEqual({ ok: true, podcasts: [TEST_POD, TEST_POD_2] });
     });
-    it(`should fail to find podcasts array`, async () => {
-      podcastRepository.find.mockResolvedValue(undefined);
+    it(`should fail to return podcasts array`, async () => {
+      podcastRepository.find.mockRejectedValueOnce(new Error());
       const result = await service.getAllPodcasts();
-      expect(result).toEqual({
-        ok: false,
-        error: `Could not find any podcast`,
-      });
+      expect(podcastRepository.find).toHaveBeenCalled();
+      expect(result).toMatchObject(InternalServerErrorOutput);
     });
   });
   describe(`createPodcast`, () => {
     const createPodcastArgs = {
-      title: `test-title`,
-      category: `test-category`,
+      title: TEST_POD.title,
+      category: TEST_POD.category,
     };
     it(`should create Podcast`, async () => {
       podcastRepository.create.mockReturnValue(createPodcastArgs);
-      podcastRepository.save.mockResolvedValue({ id: 1 });
+      podcastRepository.save.mockResolvedValue(TEST_POD);
       const result = await service.createPodcast(createPodcastArgs);
 
       expect(podcastRepository.create).toHaveBeenCalled();
@@ -65,79 +112,75 @@ describe(`PodcastsService`, () => {
       expect(podcastRepository.save).toHaveBeenCalledWith(createPodcastArgs);
       expect(result).toEqual({
         ok: true,
-        id: 1,
+        id: TEST_POD.id,
       });
     });
+
     it(`Fail to create Podcast`, async () => {
-      podcastRepository.create.mockResolvedValue(new Error());
+      podcastRepository.create.mockResolvedValue(createPodcastArgs);
       podcastRepository.save.mockResolvedValue(new Error());
       const result = await service.createPodcast(createPodcastArgs);
-      expect(result).toEqual({
-        error: 'Internal server error occurred.',
-        ok: false,
-      });
+      expect(result).toMatchObject(InternalServerErrorOutput);
     });
   });
 
   describe(`getPodcast`, () => {
-    const mockPodcast = {
-      id: 1,
-      title: `test-title`,
-      category: `test-category`,
-    };
     it(`fail to find podcast`, async () => {
-      podcastRepository.findOneBy.mockResolvedValue(undefined);
-      const result = await service.getPodcast(mockPodcast.id);
+      podcastRepository.findOneBy.mockResolvedValue(null);
+      const result = await service.getPodcast(TEST_POD.id);
+
+      expect(podcastRepository.findOneBy).toHaveBeenCalled();
+      expect(podcastRepository.findOneBy).toHaveBeenCalledWith({
+        id: TEST_POD.id,
+      });
       expect(result).toEqual({
         ok: false,
-        error: `Podcast with id ${mockPodcast.id} not found`,
+        error: `Podcast with id ${TEST_POD.id} not found`,
       });
     });
     it(`should find podcast`, async () => {
-      podcastRepository.findOneBy.mockResolvedValue(mockPodcast);
-      const result = await service.getPodcast(mockPodcast.id);
+      podcastRepository.findOneBy.mockResolvedValue(TEST_POD);
+      const result = await service.getPodcast(TEST_POD.id);
       expect(result).toEqual({
         ok: true,
-        podcast: mockPodcast,
+        podcast: TEST_POD,
       });
     });
     it(`throw exception error`, async () => {
       podcastRepository.findOneBy.mockRejectedValue(new Error());
-      const result = await service.getPodcast(mockPodcast.id);
-      expect(result).toEqual({
-        ok: false,
-        error: `Internal server error occurred.`,
-      });
+      const result = await service.getPodcast(TEST_POD.id);
+      expect(result).toMatchObject(InternalServerErrorOutput);
     });
   });
 
   describe(`deletePodcast`, () => {
-    const mockPodcast = {
-      id: 1,
-      title: `test-title`,
-      category: `test-category`,
-    };
-
-    it(`fail to find podcast`, async () => {
-      podcastRepository.findOneBy.mockResolvedValue(undefined);
-      const result = await service.deletePodcast(mockPodcast.id);
+    it(`fail delete podcast because of getPodcast`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementationOnce(async (id) => ({
+        ok: false,
+        error: `Podcast with id ${id} not found`,
+      }));
+      const result = await service.deletePodcast(TEST_POD.id);
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
       expect(result).toEqual({
         ok: false,
-        error: `Podcast with id ${mockPodcast.id} not found`,
+        error: `Podcast with id ${TEST_POD.id} not found`,
       });
     });
     it(`should delete the podcast`, async () => {
-      podcastRepository.findOneBy.mockResolvedValue(mockPodcast);
-      const result = await service.deletePodcast(mockPodcast.id);
+      jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
+        return { ok: true, podcast: TEST_POD };
+      });
+      const result = await service.deletePodcast(TEST_POD.id);
       expect(result).toEqual({ ok: true });
     });
-    it(`throw exception`, async () => {
-      podcastRepository.findOneBy.mockRejectedValue(new Error());
-      const result = await service.deletePodcast(mockPodcast.id);
-      expect(result).toEqual({
-        ok: false,
-        error: `Internal server error occurred.`,
+    it(`fail to delete podcast`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
+        return { ok: true, podcast: TEST_POD };
       });
+      podcastRepository.delete.mockRejectedValue(new Error());
+      const result = await service.deletePodcast(TEST_POD.id);
+      expect(result).toMatchObject(InternalServerErrorOutput);
     });
   });
   describe(`updatePodcast`, () => {});

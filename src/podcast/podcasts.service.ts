@@ -37,17 +37,15 @@ export class PodcastsService {
   };
 
   async getAllPodcasts(): Promise<GetAllPodcastsOutput> {
-    const podcasts = await this.podcastRepository.find();
-    if (podcasts) {
+    try {
+      const podcasts = await this.podcastRepository.find();
       return {
         ok: true,
         podcasts,
       };
+    } catch (e) {
+      return this.InternalServerErrorOutput;
     }
-    return {
-      ok: false,
-      error: `Could not find any podcast`,
-    };
   }
 
   async createPodcast({
@@ -71,9 +69,7 @@ export class PodcastsService {
 
   async getPodcast(id: number): Promise<PodcastOutput> {
     try {
-      const podcast = await this.podcastRepository.findOneBy({
-        id,
-      });
+      const podcast = await this.podcastRepository.findOneBy({ id });
       if (!podcast) {
         return {
           ok: false,
@@ -91,14 +87,9 @@ export class PodcastsService {
 
   async deletePodcast(id: number): Promise<CoreOutput> {
     try {
-      const podcast = await this.podcastRepository.findOneBy({
-        id,
-      });
-      if (!podcast) {
-        return {
-          ok: false,
-          error: `Podcast with id ${id} not found`,
-        };
+      const { ok, error } = await this.getPodcast(id);
+      if (!ok) {
+        return { ok, error };
       }
       await this.podcastRepository.delete({ id });
       return { ok: true };
