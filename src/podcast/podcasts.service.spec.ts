@@ -183,5 +183,87 @@ describe(`PodcastsService`, () => {
       expect(result).toMatchObject(InternalServerErrorOutput);
     });
   });
-  describe(`updatePodcast`, () => {});
+  describe(`updatePodcast`, () => {
+    it(`should update podcast`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
+        return { ok: true, podcast: TEST_POD };
+      });
+      const payload = { rating: 2 };
+      const result = await service.updatePodcast({
+        id: TEST_POD.id,
+        payload,
+      });
+      const updatedArgs = { ...TEST_POD, ...payload };
+
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
+
+      expect(podcastRepository.save).toHaveBeenCalled();
+      expect(podcastRepository.save).toHaveBeenCalledWith(updatedArgs);
+
+      expect(result).toMatchObject({ ok: true });
+    });
+
+    it(`should fail because of save error`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
+        return { ok: true, podcast: TEST_POD };
+      });
+      const payload = { rating: 2 };
+      podcastRepository.save.mockRejectedValue(new Error());
+      const result = await service.updatePodcast({
+        id: TEST_POD.id,
+        payload,
+      });
+      const updatedArgs = { ...TEST_POD, ...payload };
+
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
+
+      expect(podcastRepository.save).toHaveBeenCalled();
+      expect(podcastRepository.save).toHaveBeenCalledWith(updatedArgs);
+
+      expect(result).toMatchObject({ ok: false });
+    });
+
+    it(`should fail becaue of payload error`, async () => {
+      jest.spyOn(service, 'getPodcast').mockImplementationOnce(async (id) => ({
+        ok: true,
+        podcast: TEST_POD,
+      }));
+      const payload = { rating: 300 };
+      const result = await service.updatePodcast({
+        id: TEST_POD.id,
+        payload,
+      });
+
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
+      expect(podcastRepository.save).toHaveBeenCalled();
+
+      expect(result).toMatchObject({
+        ok: false,
+        error: 'Rating must be between 1 and 5.',
+      });
+    });
+
+    it(`should fail becaue of getPodcast error`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
+        return { ok: false, error: `Podcast with id ${TEST_POD.id} not found` };
+      });
+      const payload = { rating: 2 };
+      const result = await service.updatePodcast({
+        id: TEST_POD.id,
+        payload,
+      });
+
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
+      expect(podcastRepository.save).toHaveBeenCalled();
+
+      expect(result).toEqual({
+        ok: false,
+        error: `Podcast with id ${TEST_POD.id} not found`,
+      });
+    });
+  });
 });
