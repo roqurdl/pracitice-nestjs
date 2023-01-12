@@ -248,7 +248,7 @@ describe(`PodcastsService`, () => {
 
     it(`should fail becaue of getPodcast error`, async () => {
       jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
-        return { ok: false, error: `Podcast with id ${TEST_POD.id} not found` };
+        return { ok: false, error: `Podcast with id ${id} not found` };
       });
       const payload = { rating: 2 };
       const result = await service.updatePodcast({
@@ -266,4 +266,78 @@ describe(`PodcastsService`, () => {
       });
     });
   });
+
+  describe(`getEpisodes: get all episode testing`, () => {
+    it(`should return episodes`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementation(async (id) => {
+        return { ok: true, podcast: TEST_POD };
+      });
+
+      const result = await service.getEpisodes(TEST_POD.id);
+
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
+
+      expect(result).toMatchObject({ ok: true, episodes: TEST_POD.episodes });
+    });
+    it(`should fail to getEpisodes because of getPodcast`, async () => {
+      jest.spyOn(service, `getPodcast`).mockImplementationOnce(async (id) => ({
+        ok: false,
+        error: `Podcast with id ${id} not found`,
+      }));
+
+      const result = await service.getEpisodes(TEST_POD.id);
+
+      expect(service.getPodcast).toHaveBeenCalled();
+      expect(service.getPodcast).toHaveBeenCalledWith(TEST_POD.id);
+
+      expect(result).toEqual({
+        ok: false,
+        error: `Podcast with id ${TEST_POD.id} not found`,
+      });
+    });
+  });
+
+  describe(`getEpisode`, () => {
+    it(`should give episode`, async () => {
+      jest.spyOn(service, `getEpisodes`).mockImplementationOnce(async (id) => ({
+        ok: true,
+        episodes: [TEST_EPI],
+      }));
+
+      const inputArgs = {
+        podcastId: TEST_POD.id,
+        episodeId: TEST_EPI.id,
+      };
+
+      const result = await service.getEpisode(inputArgs);
+
+      expect(service.getEpisodes).toHaveBeenCalledTimes(1);
+      expect(service.getEpisodes).toHaveBeenCalledWith(TEST_POD.id);
+      expect(result).toMatchObject({ ok: true, episode: TEST_EPI });
+    });
+    it(`should fail to find episode because of getEpisodes error`, async () => {
+      jest.spyOn(service, `getEpisodes`).mockImplementationOnce(async (id) => ({
+        ok: false,
+        error: `Podcast with id ${id} not found`,
+      }));
+      const inputArgs = {
+        podcastId: TEST_POD.id,
+        episodeId: TEST_EPI.id,
+      };
+
+      const result = await service.getEpisode(inputArgs);
+
+      expect(service.getEpisodes).toHaveBeenCalledTimes(1);
+      expect(service.getEpisodes).toHaveBeenCalledWith(TEST_POD.id);
+      expect(result).toMatchObject({
+        ok: false,
+        error: `Podcast with id ${TEST_POD.id} not found`,
+      });
+    });
+  });
+
+  it.todo(`createEpisode`);
+  it.todo(`deleteEpisode`);
+  it.todo(`updateEpisode`);
 });
